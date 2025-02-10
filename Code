@@ -1,0 +1,78 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+
+# Define global variables
+num_processes = 0
+num_resources = 0
+
+def detect_deadlock():
+    global num_processes, num_resources
+    allocated = []
+    max_need = []
+    
+    for i in range(num_processes):
+        allocated_resources = list(map(int, entry_allocated[i].get().split()))
+        allocated.append(allocated_resources)
+    
+    for i in range(num_processes):
+        max_resources = list(map(int, entry_max[i].get().split()))
+        max_need.append(max_resources)
+
+    available = list(map(int, entry_available.get().split()))
+
+    work = available[:]
+    finish = [False] * num_processes
+
+    while True:
+        found = False
+        for i in range(num_processes):
+            if not finish[i] and all(allocated[i][j] + work[j] >= max_need[i][j] for j in range(num_resources)):
+                work = [work[j] + allocated[i][j] for j in range(num_resources)]
+                finish[i] = True
+                found = True
+                break
+        
+        if not found:
+            break
+
+    if all(finish):
+        result_label.config(text="No deadlock detected")
+    else:
+        result_label.config(text="Deadlock detected!")
+
+# GUI setup
+root = tk.Tk()
+root.title("Deadlock Detection")
+
+ttk.Label(root, text="Enter number of processes:").grid(row=0, column=0)
+entry_num_processes = ttk.Entry(root)
+entry_num_processes.grid(row=0, column=1)
+
+ttk.Label(root, text="Enter number of resources:").grid(row=1, column=0)
+entry_num_resources = ttk.Entry(root)
+entry_num_resources.grid(row=1, column=1)
+
+entry_allocated = []
+entry_max = []
+
+ttk.Label(root, text="Enter allocated resources for each process:").grid(row=2, column=0)
+for i in range(5):  # Assuming max 5 processes
+    entry_allocated.append(ttk.Entry(root))
+    entry_allocated[-1].grid(row=3 + i, column=0)
+
+ttk.Label(root, text="Enter max need resources for each process:").grid(row=2, column=1)
+for i in range(5):
+    entry_max.append(ttk.Entry(root))
+    entry_max[-1].grid(row=3 + i, column=1)
+
+ttk.Label(root, text="Enter available resources:").grid(row=9, column=0)
+entry_available = ttk.Entry(root)
+entry_available.grid(row=9, column=1)
+
+btn_detect = ttk.Button(root, text="Detect Deadlock", command=detect_deadlock)
+btn_detect.grid(row=10, column=0, columnspan=2)
+
+result_label = ttk.Label(root, text="")
+result_label.grid(row=11, column=0, columnspan=2)
+
+root.mainloop()
